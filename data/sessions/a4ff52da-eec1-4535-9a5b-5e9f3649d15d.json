@@ -1,0 +1,15 @@
+{
+  "session_id": "a4ff52da-eec1-4535-9a5b-5e9f3649d15d",
+  "started_at": 1782367977.7449434,
+  "ended_at": 1782368037.3343785,
+  "model_used": "qwen3:1.7b",
+  "model_history": [
+    {
+      "model": "qwen3:4b",
+      "switched_at": 1782367978.0652092
+    }
+  ],
+  "messages": [],
+  "context_summary": "",
+  "facts_extracted": []
+}

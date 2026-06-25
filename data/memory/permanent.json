@@ -1,0 +1,32 @@
+{
+  "persona": {
+    "user_name": "",
+    "preferences": {},
+    "facts": [
+      {
+        "key": "original_price",
+        "value": "600 rupees",
+        "ts": 1782368170.5539541,
+        "source_session": "36dd0df3-0928-410a-aeda-864271f1f39f"
+      },
+      {
+        "key": "discount_percentage",
+        "value": "15%",
+        "ts": 1782368170.555669,
+        "source_session": "36dd0df3-0928-410a-aeda-864271f1f39f"
+      }
+    ]
+  },
+  "knowledge": [],
+  "session_summaries": [
+    {
+      "session_id": "36dd0df3-0928-410a-aeda-864271f1f39f",
+      "date": "2026-06-25 11:46",
+      "summary": "The user asked about the cost after a 15% discount and then asked about the theory of relativity.",
+      "key_points": [
+        "Calculate 15% of 600 rupees to find the discount",
+        "Subtract the discount from the original price to find the final amount"
+      ]
+    }
+  ]
+}

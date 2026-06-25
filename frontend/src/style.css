@@ -1,0 +1,808 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #000000;
+  --text: #e0f0ff;
+  --text-dim: #5b4462;
+  --accent: #944da8;
+  --green: #7ee8a2;
+  --amber: #f0a830;
+  --red: #ef5350;
+  --panel-bg: rgba(4, 10, 22, 0.92);
+  --border: rgba(171, 84, 184, 0.353);
+  --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ── Canvas ───────────────────────────────────────────────── */
+#orb-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── HUD top-left (fixed) ─────────────────────────────────── */
+#hud-topleft {
+  position: fixed;
+  top: 24px;
+  left: 28px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+#hud-project {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  line-height: 1;
+}
+
+#hud-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+#hud-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+#hud-status-dot.listening {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+#hud-status-dot.thinking {
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+}
+
+#hud-status-dot.speaking {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+#hud-status-dot.error {
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+}
+
+#hud-status-label {
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.3s;
+}
+
+#hud-status-label.listening {
+  color: var(--accent);
+}
+
+#hud-status-label.thinking {
+  color: var(--amber);
+}
+
+#hud-status-label.speaking {
+  color: var(--green);
+}
+
+#hud-status-label.error {
+  color: var(--red);
+}
+
+#hud-transcript {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 320px;
+  min-height: 16px;
+  line-height: 1.4;
+}
+
+/* ── Mini orb indicator ───────────────────────────────────── */
+#listen-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+#listen-orb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#listen-core {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+#listen-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0.3;
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+#listen-indicator.thinking #listen-core {
+  background: var(--amber);
+  box-shadow: 0 0 10px var(--amber);
+}
+
+#listen-indicator.thinking #listen-ring {
+  border-color: var(--amber);
+  animation: none;
+  transform: scale(1.3);
+  opacity: 0.2;
+}
+
+#listen-indicator.speaking #listen-core {
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+
+#listen-indicator.speaking #listen-ring {
+  border-color: var(--green);
+}
+
+#listen-indicator.error #listen-core {
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+}
+
+#listen-indicator.error #listen-ring {
+  border-color: var(--red);
+  animation: none;
+}
+
+/* ── Draggable panels ─────────────────────────────────────── */
+.panel {
+  position: fixed;
+  z-index: 30;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.2s;
+  min-width: 120px;
+}
+
+.panel.dragging {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.panel.minimised>.panel-body,
+.panel.minimised>.panel-body-split {
+  display: none !important;
+}
+
+/* panel initial positions set by JS */
+#error-panel {
+  width: 320px;
+  top: 24px;
+  right: 28px;
+  left: auto;
+}
+
+#terminal-panel {
+  width: 700px;
+  bottom: 24px;
+  left: 24px;
+  top: auto;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(79, 195, 247, 0.03);
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.panel-header:active {
+  cursor: grabbing;
+}
+
+.panel.minimised .panel-header {
+  border-bottom: none;
+}
+
+.panel-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.term-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.term-dot:hover {
+  opacity: 0.7;
+}
+
+.term-dot.red {
+  background: #ff5f57;
+}
+
+.term-dot.yellow {
+  background: #febc2e;
+}
+
+.term-dot.green {
+  background: #28c840;
+  cursor: default;
+}
+
+.panel-title {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.panel-body {
+  overflow-y: auto;
+  padding: 8px 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  max-height: 160px;
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Terminal split body */
+.panel-body-split {
+  display: flex;
+  gap: 0;
+}
+
+.term-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.term-col:last-child {
+  border-right: none;
+}
+
+.term-sub-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(79, 195, 247, 0.02);
+  flex-shrink: 0;
+}
+
+.term-sub-title {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.term-body {
+  height: 150px;
+  overflow-y: auto;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.term-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.term-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.term-clear {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.term-clear:hover {
+  color: var(--accent);
+}
+
+/* Log lines */
+.log-line {
+  display: block;
+  margin-bottom: 1px;
+  word-break: break-all;
+}
+
+.log-line.INFO {
+  color: #5b9fc4;
+}
+
+.log-line.ERROR {
+  color: #ef5350;
+}
+
+.log-line.WARNING {
+  color: var(--amber);
+}
+
+.log-line.DEBUG {
+  color: #2a4060;
+}
+
+.log-line.PING {
+  display: none;
+}
+
+.log-line.FE {
+  color: #7ee8a2;
+}
+
+.log-line.FE-ERR {
+  color: #ef5350;
+}
+
+.log-line.FE-WARN {
+  color: var(--amber);
+}
+
+.log-line.log-ok {
+  color: #2a4a6a;
+}
+
+/* ── Taskbar (restore closed/minimised panels) ────────────── */
+#taskbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.taskbar-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.2s, border-color 0.2s;
+  user-select: none;
+}
+
+.taskbar-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.taskbar-chip .chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── Controls bottom-right ────────────────────────────────── */
+#controls {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+}
+
+#controls button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-dim);
+  font-size: 17px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+#controls button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Settings panel ───────────────────────────────────────── */
+#settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  min-width: 300px;
+  backdrop-filter: blur(24px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#settings-panel h3 {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+#settings-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+#settings-panel input[type="text"],
+#settings-panel input[type="range"] {
+  background: rgba(79, 195, 247, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+#settings-panel input[type="text"]:focus {
+  border-color: var(--accent);
+}
+
+#settings-panel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+#settings-panel label:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+#btn-close-settings {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  align-self: flex-end;
+}
+
+#btn-close-settings:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── APPEND THIS BLOCK TO THE BOTTOM OF style.css ─────────────────────────── */
+
+/* ── HUD model row ────────────────────────────────────────────────────────── */
+#hud-model-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  pointer-events: none;
+}
+
+#hud-model-icon {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+#hud-model-name {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+/* ── Settings panel — general ─────────────────────────────────────────────── */
+#settings-panel {
+  position: fixed;
+  bottom: 60px;
+  right: 28px;
+  z-index: 50;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+#settings-panel.hidden {
+  display: none;
+}
+
+#settings-panel h3 {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+#settings-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+#settings-panel input[type="text"],
+#settings-panel select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--mono);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#settings-panel input[type="text"]:focus,
+#settings-panel select:focus {
+  border-color: var(--accent);
+}
+
+#settings-panel input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+
+#settings-panel input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+#btn-close-settings {
+  align-self: flex-end;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+#btn-close-settings:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Settings sections ────────────────────────────────────────────────────── */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section-title {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+.setting-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+/* ── Model selector row ───────────────────────────────────────────────────── */
+.model-selector-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#setting-model {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--mono);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+#setting-model:focus {
+  border-color: var(--accent);
+}
+
+#setting-model option {
+  background: #0d1220;
+  color: var(--text);
+}
+
+#setting-model option:disabled {
+  color: var(--text-dim);
+  opacity: 0.4;
+}
+
+#btn-refresh-models {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+#btn-refresh-models:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#model-status {
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.6;
+}

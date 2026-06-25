@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SIA Display</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a12;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 14px;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    #panel-title {
+      font-size: 13px;
+      color: #7c85a0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #1e2233;
+      padding-bottom: 8px;
+    }
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #13141f;
+    }
+    .field-key { color: #7c85a0; }
+    .field-val { color: #a8d8a0; font-weight: 600; }
+    .result-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #13141f;
+      cursor: pointer;
+    }
+    .result-title { color: #a0c4ff; margin-bottom: 4px; }
+    .result-snippet { color: #6b7280; font-size: 12px; }
+    #loading { color: #4b5563; text-align: center; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <div id="panel-title">SIA Display</div>
+  <div id="content"><div id="loading">Waiting for data…</div></div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const channelId = urlParams.get('id') || 'sia_panel';
+    const bc = new BroadcastChannel(channelId);
+
+    bc.onmessage = (event) => {
+      const panel = event.data;
+      document.getElementById('panel-title').textContent = panel.title || 'SIA Display';
+      document.title = panel.title || 'SIA Display';
+      const content = document.getElementById('content');
+      content.innerHTML = '';
+
+      if (panel.type === 'stock' && panel.fields) {
+        Object.entries(panel.fields).forEach(([k, v]) => {
+          content.innerHTML += `
+            <div class="field-row">
+              <span class="field-key">${k}</span>
+              <span class="field-val">${v}</span>
+            </div>`;
+        });
+      } else if (panel.type === 'search' && panel.items) {
+        panel.items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'result-item';
+          div.innerHTML = `
+            <div class="result-title">${item.title}</div>
+            <div class="result-snippet">${item.snippet || ''}</div>`;
+          if (item.url) div.onclick = () => window.open(item.url, '_blank');
+          content.appendChild(div);
+        });
+      } else {
+        content.innerHTML = `<pre style="white-space:pre-wrap;color:#ccc">${JSON.stringify(panel, null, 2)}</pre>`;
+      }
+    };
+  </script>
+</body>
+</html>

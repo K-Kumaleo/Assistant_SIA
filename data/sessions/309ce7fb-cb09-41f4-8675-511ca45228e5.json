@@ -1,0 +1,26 @@
+{
+  "session_id": "309ce7fb-cb09-41f4-8675-511ca45228e5",
+  "started_at": 1782366849.272736,
+  "ended_at": 1782366952.7826455,
+  "model_used": "qwen3:1.7b",
+  "model_history": [
+    {
+      "model": "qwen3:4b",
+      "switched_at": 1782366849.6056998
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": "introduce",
+      "ts": 1782366853.6804125
+    },
+    {
+      "role": "assistant",
+      "content": "I'm SIA, your structured intent assistant. I help with tasks, information, and reminders. Let me know how I can assist you!",
+      "ts": 1782366866.9713576
+    }
+  ],
+  "context_summary": "",
+  "facts_extracted": []
+}

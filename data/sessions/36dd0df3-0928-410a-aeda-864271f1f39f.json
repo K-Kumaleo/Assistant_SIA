@@ -1,0 +1,45 @@
+{
+  "session_id": "36dd0df3-0928-410a-aeda-864271f1f39f",
+  "started_at": 1782368040.8372517,
+  "ended_at": 1782368170.5583506,
+  "model_used": "qwen3:1.7b",
+  "model_history": [
+    {
+      "model": "qwen3:4b",
+      "switched_at": 1782368041.1482224
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": "okay how much will I have to pay if there is 15% discount on an item costing 600 rupees",
+      "ts": 1782368052.406822
+    },
+    {
+      "role": "assistant",
+      "content": "You can calculate the discount amount by 15% of 600 rupees, which is 90 rupees. Subtracting that from 600 gives 510 rupees. So, you will pay 510 rupees.",
+      "ts": 1782368066.2295747
+    },
+    {
+      "role": "user",
+      "content": "aur right can you explain me the relativity theory theory of relativity",
+      "ts": 1782368100.6381896
+    },
+    {
+      "role": "assistant",
+      "content": "Relativity theory is a fundamental concept in physics, developed by Albert Einstein. It has two parts: special relativity and general relativity. Special relativity deals with objects moving at constant speeds, especially near the speed of light, and introduces ideas like time dilation and length contraction. General relativity extends this to include gravity, describing it as the curvature of spacetime caused by mass and energy. It explains how massive objects warp the fabric of space and time, affecting the motion of other objects.",
+      "ts": 1782368103.4342306
+    }
+  ],
+  "context_summary": "The user asked about the cost after a 15% discount and then asked about the theory of relativity.",
+  "facts_extracted": [
+    {
+      "key": "original_price",
+      "value": "600 rupees"
+    },
+    {
+      "key": "discount_percentage",
+      "value": "15%"
+    }
+  ]
+}

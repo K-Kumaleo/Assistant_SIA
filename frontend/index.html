@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIA</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="orb-canvas"></canvas>
+
+    <!-- Top-left: identity + status -->
+    <div id="hud-topleft">
+      <div id="hud-project">Project : SIA</div>
+      <div id="hud-status-row">
+        <span id="hud-status-dot"></span>
+        <span id="hud-status-label">Initialising</span>
+      </div>
+      <!-- Active model chip -->
+      <div id="hud-model-row">
+        <span id="hud-model-icon">⬡</span>
+        <span id="hud-model-name">—</span>
+      </div>
+      <div id="hud-transcript"></div>
+    </div>
+
+    <!-- Mini listening orb — centre bottom -->
+    <div id="listen-indicator">
+      <div id="listen-orb">
+        <div id="listen-ring"></div>
+        <div id="listen-core"></div>
+      </div>
+    </div>
+
+    <!-- Draggable: Error Log panel -->
+    <div class="panel draggable" id="error-panel" data-panel="error">
+      <div class="panel-header drag-handle">
+        <div class="panel-dots">
+          <span class="term-dot red"    data-action="close"    data-target="error"></span>
+          <span class="term-dot yellow" data-action="minimise" data-target="error"></span>
+          <span class="term-dot green"></span>
+        </div>
+        <span class="panel-title">Error Log</span>
+        <button class="term-clear" id="clear-errors">clear</button>
+      </div>
+      <div class="panel-body" id="error-body">
+        <span class="log-line log-ok">No errors — all clear ✓</span>
+      </div>
+    </div>
+
+    <!-- Draggable: Terminal panel -->
+    <div class="panel draggable" id="terminal-panel" data-panel="terminal">
+      <div class="panel-header drag-handle">
+        <div class="panel-dots">
+          <span class="term-dot red"    data-action="close"    data-target="terminal"></span>
+          <span class="term-dot yellow" data-action="minimise" data-target="terminal"></span>
+          <span class="term-dot green"></span>
+        </div>
+        <span class="panel-title">SIA Terminal</span>
+      </div>
+      <div class="panel-body panel-body-split" id="terminal-body">
+        <div class="term-col">
+          <div class="term-sub-header">
+            <span class="term-sub-title">Backend</span>
+            <button class="term-clear" data-target="backend">clear</button>
+          </div>
+          <div class="term-body" id="term-backend-body"></div>
+        </div>
+        <div class="term-col">
+          <div class="term-sub-header">
+            <span class="term-sub-title">Frontend</span>
+            <button class="term-clear" data-target="frontend">clear</button>
+          </div>
+          <div class="term-body" id="term-frontend-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar"></div>
+
+    <!-- Bottom-right controls -->
+    <div id="controls">
+      <button id="btn-settings" title="Settings">⚙</button>
+      <button id="btn-reset"    title="Reset conversation">↺</button>
+    </div>
+
+    <!-- Settings panel -->
+    <div id="settings-panel" class="hidden">
+      <h3>Settings</h3>
+
+      <!-- Model selector — top of settings -->
+      <div class="settings-section">
+        <div class="settings-section-title">AI Brain</div>
+        <div class="model-selector-row">
+          <select id="setting-model" title="Select AI model"></select>
+          <button id="btn-refresh-models" title="Rescan models">⟳</button>
+        </div>
+        <div id="model-status" class="setting-hint">Scanning…</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Preferences</div>
+        <label>
+          Your name
+          <input type="text" id="setting-name" placeholder="e.g. Kaavya" />
+        </label>
+        <label>
+          Voice volume
+          <input type="range" id="setting-volume" min="0" max="100" value="80" />
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="setting-echo-filter" checked />
+          Echo filter <span class="setting-hint">(turn off if using headphones)</span>
+        </label>
+      </div>
+
+      <button id="btn-close-settings">Close</button>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
